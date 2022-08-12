@@ -1,0 +1,46 @@
+package com.erkan.rem;
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import android.widget.TextView;
+import java.lang.reflect.Array;
+import java.util.List;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+public class MainActivity extends AppCompatActivity {
+ private TextView yazi;
+
+ @Override
+ protected void onCreate(Bundle savedInstanceState) {
+ super.onCreate(savedInstanceState);
+ setContentView(R.layout.activity_main);
+ yazi = findViewById(R.id.textViewResult);
+ Retrofit retrofit = new Retrofit.Builder()
+ .baseUrl("http://bigpara.hurriyet.com.tr/")
+ .addConverterFactory(GsonConverterFactory.create())
+ .build();
+ Mapi mapi = retrofit.create(Mapi.class);
+ Call<Varan> call = mapi.getPosts();
+ call.enqueue(new Callback<Varan>() {
+ @Override
+ public void onResponse(Call<Varan> call, Response<Varan> response) {
+ if(!response.isSuccessful()){
+ yazi.setText("code:" + response.code());
+ }
+ List<Post> posts = response.body().getData();
+ for(Post post : posts){
+ String content="";
+ content += "ID: " + post.getId() + "\n";
+ content += "User ID:" + post.getAd() + "\n";
+ yazi.append(content);
+ }
+ }
+ @Override
+ public void onFailure(Call<Varan> call, Throwable t) {
+ yazi.setText(t.getMessage());
+ }
+ });
+ }
+}
